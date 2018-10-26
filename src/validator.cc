@@ -75,6 +75,11 @@ class Validator : public ExprVisitor::Delegate {
   Result OnTableCopyExpr(TableCopyExpr*) override;
   Result OnTableDropExpr(TableDropExpr*) override;
   Result OnTableInitExpr(TableInitExpr*) override;
+  Result OnTableGetExpr(TableGetExpr*) override;
+  Result OnTableSetExpr(TableSetExpr*) override;
+  Result OnTableGrowExpr(TableGrowExpr*) override;
+  Result OnRefNullExpr(RefNullExpr*) override;
+  Result OnRefIsNullExpr(RefIsNullExpr*) override;
   Result OnNopExpr(NopExpr*) override;
   Result OnReturnExpr(ReturnExpr*) override;
   Result OnReturnCallExpr(ReturnCallExpr*) override;
@@ -168,7 +173,7 @@ class Validator : public ExprVisitor::Delegate {
                                 const char* desc);
   void CheckExprList(const Location* loc, const ExprList& exprs);
   bool CheckHasMemory(const Location* loc, Opcode opcode);
-  bool CheckHasTable(const Location* loc, Opcode opcode);
+  bool CheckHasTable(const Location* loc, Opcode opcode, Index index = 0);
   void CheckHasSharedMemory(const Location* loc, Opcode opcode);
   void CheckBlockDeclaration(const Location* loc,
                              Opcode opcode,
@@ -493,10 +498,10 @@ bool Validator::CheckHasMemory(const Location* loc, Opcode opcode) {
   return true;
 }
 
-bool Validator::CheckHasTable(const Location* loc, Opcode opcode) {
-  if (current_module_->tables.size() == 0) {
-    PrintError(loc, "%s requires an imported or defined table.",
-               opcode.GetName());
+bool Validator::CheckHasTable(const Location* loc, Opcode opcode, Index index) {
+  if (current_module_->tables.size() <= index) {
+    PrintError(loc, "%s requires table %d to be an imported or defined table.",
+               opcode.GetName(), index);
     return false;
   }
 
@@ -780,6 +785,39 @@ Result Validator::OnTableInitExpr(TableInitExpr* expr) {
   CheckHasTable(&expr->loc, Opcode::TableInit);
   CheckElemSegmentVar(&expr->var);
   typechecker_.OnTableInit(expr->var.index());
+  return Result::Ok;
+}
+
+Result Validator::OnTableGetExpr(TableGetExpr* expr) {
+  expr_loc_ = &expr->loc;
+  CheckHasTable(&expr->loc, Opcode::TableGet, expr->var.index());
+  typechecker_.OnTableGet(expr->var.index());
+  return Result::Ok;
+}
+
+Result Validator::OnTableSetExpr(TableSetExpr* expr) {
+  expr_loc_ = &expr->loc;
+  CheckHasTable(&expr->loc, Opcode::TableSet, expr->var.index());
+  typechecker_.OnTableSet(expr->var.index());
+  return Result::Ok;
+}
+
+Result Validator::OnTableGrowExpr(TableGrowExpr* expr) {
+  expr_loc_ = &expr->loc;
+  CheckHasTable(&expr->loc, Opcode::TableGrow, expr->var.index());
+  typechecker_.OnTableGrow(expr->var.index());
+  return Result::Ok;
+}
+
+Result Validator::OnRefNullExpr(RefNullExpr* expr) {
+  expr_loc_ = &expr->loc;
+  typechecker_.OnRefNullExpr();
+  return Result::Ok;
+}
+
+Result Validator::OnRefIsNullExpr(RefIsNullExpr* expr) {
+  expr_loc_ = &expr->loc;
+  typechecker_.OnRefIsNullExpr();
   return Result::Ok;
 }
 
@@ -1074,13 +1112,19 @@ void Validator::CheckLimits(const Location* loc,
 }
 
 void Validator::CheckTable(const Location* loc, const Table* table) {
-  if (current_table_index_ == 1) {
+  if (current_table_index_ == 1 && !options_.features.reference_types_enabled()) {
     PrintError(loc, "only one table allowed");
   }
   CheckLimits(loc, &table->elem_limits, UINT32_MAX, "elems");
 
   if (table->elem_limits.is_shared) {
     PrintError(loc, "tables may not be shared");
+  }
+  if (table->elem_type == Type::Anyref && !options_.features.reference_types_enabled()) {
+    PrintError(loc, "tables must have anyref type");
+  }
+  if (table->elem_type != Type::Anyref && table->elem_type != Type::Anyfunc) {
+    PrintError(loc, "tables must have anyref or anyfunc type");
   }
 }
 

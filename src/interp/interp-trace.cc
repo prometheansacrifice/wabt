@@ -690,6 +690,14 @@ void Thread::Trace(Stream* stream) {
       break;
     }
 
+    case Opcode::TableGet:
+    case Opcode::TableSet:
+    case Opcode::TableGrow:
+    case Opcode::RefNull:
+    case Opcode::RefIsNull:
+      WABT_UNREACHABLE;
+      break;
+
     case Opcode::MemoryInit:
       WABT_UNREACHABLE;
       break;

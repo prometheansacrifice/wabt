@@ -101,6 +101,11 @@ class TypeChecker {
   Result OnTableCopy();
   Result OnTableDrop(Index);
   Result OnTableInit(Index);
+  Result OnTableGet(Index);
+  Result OnTableSet(Index);
+  Result OnTableGrow(Index);
+  Result OnRefNullExpr();
+  Result OnRefIsNullExpr();
   Result OnRethrow();
   Result OnReturn();
   Result OnSelect();

@@ -186,6 +186,8 @@ enum class ExprType {
   MemoryInit,
   MemorySize,
   Nop,
+  RefIsNull,
+  RefNull,
   Rethrow,
   Return,
   ReturnCall,
@@ -199,6 +201,9 @@ enum class ExprType {
   TableInit,
   TableCopy,
   TableDrop,
+  TableGet,
+  TableGrow,
+  TableSet,
   TeeLocal,
   Ternary,
   Throw,
@@ -265,6 +270,8 @@ typedef ExprMixin<ExprType::Rethrow> RethrowExpr;
 typedef ExprMixin<ExprType::Return> ReturnExpr;
 typedef ExprMixin<ExprType::Select> SelectExpr;
 typedef ExprMixin<ExprType::Unreachable> UnreachableExpr;
+typedef ExprMixin<ExprType::RefNull> RefNullExpr;
+typedef ExprMixin<ExprType::RefIsNull> RefIsNullExpr;
 
 template <ExprType TypeEnum>
 class OpcodeExpr : public ExprMixin<TypeEnum> {
@@ -323,6 +330,9 @@ typedef VarExpr<ExprType::MemoryInit> MemoryInitExpr;
 typedef VarExpr<ExprType::MemoryDrop> MemoryDropExpr;
 typedef VarExpr<ExprType::TableInit> TableInitExpr;
 typedef VarExpr<ExprType::TableDrop> TableDropExpr;
+typedef VarExpr<ExprType::TableGet> TableGetExpr;
+typedef VarExpr<ExprType::TableSet> TableSetExpr;
+typedef VarExpr<ExprType::TableGrow> TableGrowExpr;
 
 class CallIndirectExpr : public ExprMixin<ExprType::CallIndirect> {
  public:
@@ -525,10 +535,13 @@ struct Global {
 };
 
 struct Table {
-  explicit Table(string_view name) : name(name.to_string()) {}
+  explicit Table(string_view name) :
+      name(name.to_string()),
+      elem_type(Type::Anyfunc) {}
 
   std::string name;
   Limits elem_limits;
+  Type elem_type;
 };
 
 struct ElemSegment {

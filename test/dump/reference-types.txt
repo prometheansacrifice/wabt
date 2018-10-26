@@ -1,0 +1,25 @@
+;;; TOOL: run-objdump
+;;; ARGS0: --enable-reference-types
+
+(module
+  (table $t 1 anyref)
+  (func
+    i32.const 0
+    i32.const 0
+    table.get $t
+    table.set $t
+  )
+)
+(;; STDOUT ;;;
+
+reference-types.wasm:	file format wasm 0x1
+
+Code Disassembly:
+
+00001b func[0]:
+ 00001d: 41 00                      | i32.const 0
+ 00001f: 41 00                      | i32.const 0
+ 000021: fc 10 00                   | table.get 0
+ 000024: fc 11 00                   | table.set 0
+ 000027: 0b                         | end
+;;; STDOUT ;;)

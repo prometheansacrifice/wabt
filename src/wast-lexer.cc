@@ -257,7 +257,8 @@ Token WastLexer::GetToken(WastParser* parser) {
       <i> "f32"                 { RETURN_TYPE(ValueType, F32); }
       <i> "f64"                 { RETURN_TYPE(ValueType, F64); }
       <i> "v128"                { RETURN_TYPE(ValueType, V128); }
-      <i> "anyfunc"             { RETURN(Anyfunc); }
+      <i> "anyfunc"             { RETURN_TYPE(ValueType, Anyfunc); }
+      <i> "anyref"              { RETURN_TYPE(ValueType, Anyref); }
       <i> "mut"                 { RETURN(Mut); }
       <i> "nop"                 { RETURN_OPCODE0(Nop); }
       <i> "block"               { RETURN_OPCODE0(Block); }
@@ -453,9 +454,14 @@ Token WastLexer::GetToken(WastParser* parser) {
       <i> "memory.fill"         { RETURN_OPCODE0(MemoryFill); }
       <i> "current_memory"      { RETURN_OPCODE0(MemorySize); }
       <i> "grow_memory"         { RETURN_OPCODE0(MemoryGrow); }
-      <i> "table.init"         { RETURN_OPCODE0(TableInit); }
-      <i> "table.drop"         { RETURN_OPCODE0(TableDrop); }
-      <i> "table.copy"         { RETURN_OPCODE0(TableCopy); }
+      <i> "table.init"          { RETURN_OPCODE0(TableInit); }
+      <i> "table.drop"          { RETURN_OPCODE0(TableDrop); }
+      <i> "table.copy"          { RETURN_OPCODE0(TableCopy); }
+      <i> "table.get"           { RETURN_OPCODE0(TableGet); }
+      <i> "table.set"           { RETURN_OPCODE0(TableSet); }
+      <i> "table.grow"          { RETURN_OPCODE0(TableGrow); }
+      <i> "ref.null"            { RETURN_OPCODE0(RefNull); }
+      <i> "ref.isnull"          { RETURN_OPCODE0(RefIsNull); }
 
       <i> "i32.atomic.wait"     { RETURN_OPCODE(AtomicWait, I32AtomicWait); }
       <i> "i64.atomic.wait"     { RETURN_OPCODE(AtomicWait, I64AtomicWait); }

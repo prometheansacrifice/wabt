@@ -58,6 +58,9 @@ class NameApplier : public ExprVisitor::DelegateNop {
   Result OnSetLocalExpr(SetLocalExpr*) override;
   Result OnTableDropExpr(TableDropExpr*) override;
   Result OnTableInitExpr(TableInitExpr*) override;
+  Result OnTableGetExpr(TableGetExpr*) override;
+  Result OnTableSetExpr(TableSetExpr*) override;
+  Result OnTableGrowExpr(TableGrowExpr*) override;
   Result OnTeeLocalExpr(TeeLocalExpr*) override;
   Result BeginTryExpr(TryExpr*) override;
   Result EndTryExpr(TryExpr*) override;
@@ -269,6 +272,21 @@ Result NameApplier::OnTableDropExpr(TableDropExpr* expr)  {
 
 Result NameApplier::OnTableInitExpr(TableInitExpr* expr)  {
   CHECK_RESULT(UseNameForElemSegmentVar(&expr->var));
+  return Result::Ok;
+}
+
+Result NameApplier::OnTableGetExpr(TableGetExpr* expr)  {
+  CHECK_RESULT(UseNameForTableVar(&expr->var));
+  return Result::Ok;
+}
+
+Result NameApplier::OnTableSetExpr(TableSetExpr* expr)  {
+  CHECK_RESULT(UseNameForTableVar(&expr->var));
+  return Result::Ok;
+}
+
+Result NameApplier::OnTableGrowExpr(TableGrowExpr* expr)  {
+  CHECK_RESULT(UseNameForTableVar(&expr->var));
   return Result::Ok;
 }
 

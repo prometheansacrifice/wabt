@@ -1572,6 +1572,11 @@ void CWriter::Write(const ExprList& exprs) {
       case ExprType::TableCopy:
       case ExprType::TableDrop:
       case ExprType::TableInit:
+      case ExprType::TableGet:
+      case ExprType::TableSet:
+      case ExprType::TableGrow:
+      case ExprType::RefNull:
+      case ExprType::RefIsNull:
         UNIMPLEMENTED("...");
         break;
 
