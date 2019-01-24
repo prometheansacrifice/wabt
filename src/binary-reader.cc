@@ -125,6 +125,7 @@ class BinaryReader {
   Result ReadRelocSection(Offset section_size) WABT_WARN_UNUSED;
   Result ReadDylinkSection(Offset section_size) WABT_WARN_UNUSED;
   Result ReadLinkingSection(Offset section_size) WABT_WARN_UNUSED;
+  Result ReadGcFeatureOptinSection(Offset section_size) WABT_WARN_UNUSED;
   Result ReadCustomSection(Offset section_size) WABT_WARN_UNUSED;
   Result ReadTypeSection(Offset section_size) WABT_WARN_UNUSED;
   Result ReadImportSection(Offset section_size) WABT_WARN_UNUSED;
@@ -166,7 +167,7 @@ class BinaryReader {
   Index num_exports_ = 0;
   Index num_function_bodies_ = 0;
   Index num_exceptions_ = 0;
-
+  int gc_feature_opt_in_version = 0;
   using ReadEndRestoreGuard =
       ValueRestoreGuard<size_t, &BinaryReader::read_end_>;
 };
@@ -1747,6 +1748,15 @@ Result BinaryReader::ReadExceptionSection(Offset section_size) {
   return Result::Ok;
 }
 
+Result BinaryReader::ReadGcFeatureOptinSection(Offset section_size) {
+  uint8_t version;
+  CHECK_RESULT(ReadU8(&version, "gc_feature_opt_in version"));
+  ERROR_UNLESS(version == 2,
+               "gc_feature_opt_in version must be 2");
+  gc_feature_opt_in_version = version;
+  return Result::Ok;
+}
+
 Result BinaryReader::ReadCustomSection(Offset section_size) {
   string_view section_name;
   CHECK_RESULT(ReadStr(&section_name, "section name"));
@@ -2150,7 +2160,7 @@ Result BinaryReader::ReadSections() {
     CHECK_RESULT(ReadOffset(&section_size, "section size"));
     ReadEndRestoreGuard guard(this);
     read_end_ = state_.offset + section_size;
-    if (section_code >= kBinarySectionCount) {
+    if (section_code >= kBinarySectionCount && section_code != 42) {
       PrintError("invalid section code: %u; max is %u", section_code,
                  kBinarySectionCount - 1);
       return Result::Error;
@@ -2175,6 +2185,10 @@ Result BinaryReader::ReadSections() {
     bool stop_on_first_error = options_.stop_on_first_error;
     Result section_result = Result::Error;
     switch (section) {
+      case BinarySection::Gc_Feature_Optin:
+        section_result = ReadGcFeatureOptinSection(section_size);
+        result |= section_result;
+        break;
       case BinarySection::Custom:
         section_result = ReadCustomSection(section_size);
         if (options_.fail_on_custom_section_error) {

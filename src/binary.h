@@ -42,7 +42,7 @@
   V(Start, start, 8)                   \
   V(Elem, elem, 9)                     \
   V(Code, code, 10)                    \
-  V(Data, data, 11)
+  V(Data, data, 11)                    
 
 namespace wabt {
 
@@ -53,8 +53,9 @@ enum class BinarySection {
 #undef V
   Invalid,
 
+  Gc_Feature_Optin = 42,
   First = Custom,
-  Last = Data,
+  Last = Gc_Feature_Optin,
 };
 /* clang-format on */
 static const int kBinarySectionCount = WABT_ENUM_COUNT(BinarySection);
