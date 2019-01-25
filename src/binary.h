@@ -51,9 +51,8 @@ enum class BinarySection {
 #define V(Name, name, code) Name = code,
   WABT_FOREACH_BINARY_SECTION(V)
 #undef V
-  Invalid,
-
   Gc_Feature_Optin = 42,
+  Invalid,
   First = Custom,
   Last = Gc_Feature_Optin,
 };

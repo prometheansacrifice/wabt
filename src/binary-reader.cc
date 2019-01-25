@@ -167,7 +167,7 @@ class BinaryReader {
   Index num_exports_ = 0;
   Index num_function_bodies_ = 0;
   Index num_exceptions_ = 0;
-  int gc_feature_opt_in_version = 0;
+  uint8_t gc_feature_opt_in_version = 0;
   using ReadEndRestoreGuard =
       ValueRestoreGuard<size_t, &BinaryReader::read_end_>;
 };
@@ -2173,7 +2173,7 @@ Result BinaryReader::ReadSections() {
 
     ERROR_UNLESS(last_known_section_ == BinarySection::Invalid ||
                      section == BinarySection::Custom ||
-                     section > last_known_section_,
+                     (section > last_known_section_ || last_known_section_ == BinarySection::Gc_Feature_Optin),
                  "section %s out of order", GetSectionName(section));
 
     ERROR_UNLESS(!did_read_names_section_ || section == BinarySection::Custom,
